@@ -7,3 +7,8 @@ To remove weeds around crops, currently one can hoe or pull by hand. However, th
 ## The design
 A simple bogey using lawn-mower wheels with a raised table structure to support the body.
 
+## Status
+Design stage
+
+## To do
+Add bracing; sides; make headrest stronger; create BOM

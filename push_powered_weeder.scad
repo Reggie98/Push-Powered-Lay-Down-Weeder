@@ -1,11 +1,17 @@
 // title      : Push-powered two person lay-down weeder 
 // author     : Reggie Thomson
 // license    : MIT License
-// revision   : 0.01
-// date       : 20160829
+// revision   : 0.02
+// date       : 20160831
 // tags       : Bogey, Tyre, tire, cropshare,  
 // file       : push_powered_weeder.scad
-// todo       : 
+// todo       : add cross bracing if needed; make rear post holes fit the bogey; head rest is fixed; exploded view; dimensions
+
+
+ShowBogies = 1 ; // 0 = just show the top without posts or bogies, 1 = show everything
+WithOSBSides = 1 ; // 0 = don't have sides, 1 = add OSB to sides
+UndercoatColour = "White";
+IsPainted = 0 ;
 
 use <bogey.scad>
 
@@ -18,126 +24,253 @@ PostWidth = 120 ;
 PostCutoutHeight = 150 ;
 PostCutoutWidth = 20 ;
 PostFixingHoleHeight = 50 ;
+PostColour = IsPainted ? UndercoatColour : "DarkKhaki";
 
 LongBarLength = CartWidth ; // http://www.wickes.co.uk/Wickes-Treated-Kiln-Dried-C16-Regularised-45x120x2400mm-Single/p/166360 £9.49 * 2 (2400)
 LongBarDepth = 45 ;
 LongBarWidth = 95 ;
-
+LongBarColour = IsPainted ? UndercoatColour : "YellowGreen";
 
 FrontToRearPostLength = 900 ; // distance between holes on the bogey for the front and rear posts
 FrontExtLength = 400 ;
- 
-CrossBracingDepth = 45 ;  // http://www.wickes.co.uk/Wickes-Treated-Kiln-Dried-C16-Regularised-45x70x3600mm-Single/p/190165 £9.69 (3600mm)
-CrossBracingWidth = 70 ;
 
-OsbThickness = 18 ; // http://www.wickes.co.uk/Wickes-General-Purpose-OSB3-Board-18-x-1220-x-2440mm/p/110517 £19 * 2
-OsbTopWidth = CartWidth / 2 ;
+OsbBoardSize = [2440, 1220, 18] ; // http://www.wickes.co.uk/Wickes-General-Purpose-OSB3-Board-18-x-1220-x-2440mm/p/110517 £19 * 2
+OsbThickness = OsbBoardSize[2] ; 
+OsbTopWidth = CartWidth / 2  + (WithOSBSides ? OsbThickness : 0) ;
 OsbTopLength = 1400 ;
+OSBTopRightColour = IsPainted ? UndercoatColour : "SaddleBrown" ;
+OSBTopLeftColour = IsPainted ? UndercoatColour : "Sienna" ;
 
-SideBracingLength = OsbTopLength + FrontExtLength ;
-
-// OsbSideLength = 1600 ; // up to 2400 max - now no need for OSB on sides
-// OsbSideWidth = 1220 - OsbTopWidth ; // approx 300mm - now no need for OSB on sides
+OsbSideLength = OsbTopLength + FrontExtLength ; // up to 2440 max 
+OsbSideWidth = OsbBoardSize[1] - OsbTopWidth ; // approx 300mm
+OSBSideColour = IsPainted ? UndercoatColour : "Coral";
  
-module Post( Place, Side)
+SideBarDepth = 45 ;  // http://www.wickes.co.uk/Wickes-Treated-Kiln-Dried-C16-Regularised-45x70x3600mm-Single/p/190165 £9.69 (3600mm)
+SideBarWidth = 70 ;
+SideBarLength = OsbTopLength + FrontExtLength - LongBarDepth;
+SideBarColour = IsPainted ? UndercoatColour : "SpringGreen";
+
+FoamToppingSize = [1900, 1370, 75];
+FoamToppingLength = OsbTopLength + 100 ; // allow for some overhang over the front or rear edges of the OSB board 
+FoamToppingWidth = FoamToppingSize[1] / 2 ; // cut in two lengthways
+FoamToppingDepth = FoamToppingSize[2];
+FoamToppingColour = "Yellow";
+FoamToppingRightXOffset = (CartWidth / 2 - FoamToppingWidth) / 2 ;
+FoamToppingLeftXOffset = (CartWidth * 3 / 2 - FoamToppingWidth) / 2 ;
+
+FoamHeadRestWidth = FoamToppingDepth * 2 + LongBarDepth;
+FoamHeadRestLength = FoamToppingWidth;
+  
+module Post( Place, Side )
 {
 
-  PostHeight = (Place == "front") ? PostHeightFront : PostHeightRear ; 
+  PostHeight = (Place == "Front") ? PostHeightFront : PostHeightRear ; 
 
-  PostXOffset = (Side == "left") ? 0 : CartWidth - PostWidth ;
-  PostYOffset = - PostDepth / 2 + ((Place == "front") ? 0 : FrontToRearPostLength ); 
-  PostZOffset = (Place == "front") ? - PostFixingHoleHeight : PostHeightFront - PostHeightRear - PostFixingHoleHeight ;
+  PostXOffset = (Side == "Left") ? 0 : CartWidth - PostWidth ;
+  PostYOffset = - PostDepth / 2 + ((Place == "Front") ? 0 : FrontToRearPostLength ); 
+  PostZOffset = (Place == "Front") ? - PostFixingHoleHeight : PostHeightFront - PostHeightRear - PostFixingHoleHeight ;
 
-  PostCutoutXOffset = (Side == "left") ? -1 : PostWidth - PostCutoutWidth;
-  color("DarkKhaki")
+  PostCutoutXOffset = (Side == "Left") ? -1 : PostWidth - PostCutoutWidth;
+  color(PostColour)
   {
-    translate([PostXOffset, PostYOffset, PostZOffset])
+    translate( [PostXOffset, PostYOffset, PostZOffset] )
     {
-      difference ()
+      difference()
       {
-        cube([PostWidth, PostDepth, PostHeight], centre = false); // http://www.wickes.co.uk/Wickes-Treated-Kiln-Dried-C16-Regularised-45x120x2400mm-Single/p/166360 £9.49
-        translate([PostCutoutXOffset, -1, -1]) cube([PostCutoutWidth + 1, PostDepth + 2, PostCutoutHeight + 1], centre = false);
-        translate([(Side == "left") ? -1 : PostWidth - CrossBracingDepth, -1, PostHeight - CrossBracingWidth]) cube([CrossBracingDepth + 1, PostDepth + 2, CrossBracingWidth + 1], centre = false);
-        translate([-1, PostDepth / 2, PostFixingHoleHeight]) rotate([0, 90, 0]) cylinder( h = PostWidth + 2, d = 13, centre = false); // hole for fixing to bogey
+        // http://www.wickes.co.uk/Wickes-Treated-Kiln-Dried-C16-Regularised-45x120x2400mm-Single/p/166360 £9.49
+        cube( [PostWidth, PostDepth, PostHeight], center = false ); 
+        echo( str( Place, " ", Side, " Post, Timber: ", PostWidth, "x", PostDepth, "mm, Length=", PostHeight, "mm" ) );
+        // cut out 
+        translate( [PostCutoutXOffset, -1, -1] ) cube( [PostCutoutWidth + 1, PostDepth + 2, PostCutoutHeight + 1], center = false );
+        
+        // cut out for side bar
+        translate( [(Side == "Left") ? -1 : PostWidth - SideBarDepth, -1, PostHeight - SideBarWidth] ) cube( [SideBarDepth + 1, PostDepth + 2, SideBarWidth + 1], center = false );
+        
+        // hole for fixing to bogey - can have several holes to allow for adjusting the height and slope of the top
+        translate( [-1, PostDepth / 2, PostFixingHoleHeight] ) rotate( [0, 90, 0] ) cylinder( h = PostWidth + 2, d = 13, center = false ); 
       }
     }
   }
 }
 
-ShowBogies = 1 ;
+module FoamHeadRest( Side )
+{
+  FoamCamber = 5 ;
+
+  translate( [Side == "Right" ? FoamToppingRightXOffset : FoamToppingLeftXOffset , -FoamToppingDepth, 1])
+  {
+    difference()
+    {
+      rotate( [90, 0, 90] )
+      {
+        color( FoamToppingColour )
+        {
+          linear_extrude( height = FoamToppingWidth, center = false, convexity = 10, slices = 20)
+          {
+            hull()
+            {
+              translate( [FoamCamber , FoamCamber, 0] ) 
+              {
+                circle( r = FoamCamber );
+              }
+              translate( [FoamHeadRestWidth - FoamCamber , FoamCamber, 0] ) 
+              {
+                circle( r = FoamCamber );
+              }
+              translate( [FoamToppingDepth, LongBarWidth, 0] ) 
+              {
+                circle( r = FoamToppingDepth );
+              }
+              translate( [FoamHeadRestWidth - FoamToppingDepth, LongBarWidth, 0] )
+              {
+                circle( r = FoamToppingDepth );
+              }
+            }
+          }
+        }
+      }
+      // cut the channel for the Head Rest bar
+      translate( [-1, FoamToppingDepth, -1]) cube( [FoamHeadRestLength + 2, LongBarDepth, LongBarWidth + 2], center = false );
+    }
+  }
+}
 
 // The two bogies
 if (ShowBogies)
 {
-  translate([70,-250,0]) 
+  translate( [70,-250,0] ) 
   {
-    Bogey(Side = "right"); // bogey on right hand side
+    Bogey( Side = "Right" ); // bogey on right hand side
   }
 
-  translate([CartWidth - 70,-250,0]) 
+  translate( [CartWidth - 70,-250,0] ) 
   {
-    Bogey(Side = "left"); // bogey on left hand side
+    Bogey( Side = "Left" ); // bogey on left hand side
   }
 }
 
-rotate ([ (ShowBogies ? - atan ((PostHeightFront - PostHeightRear ) / FrontToRearPostLength ) : 0), 0, 0]) 
+rotate( [(ShowBogies ? - atan( (PostHeightFront - PostHeightRear ) / FrontToRearPostLength ) : 0), 0, 0] ) 
 {
   // posts to hold the top boards and sides
   if (ShowBogies)
   {
-    Post( Place = "front", Side = "left") ;
-    Post( Place = "rear", Side = "left") ;
-    Post( Place = "front", Side = "right") ;
-    Post( Place = "rear", Side = "right") ;
+    Post( Place = "Front", Side = "Left") ;
+    Post( Place = "Rear", Side = "Left") ;
+    Post( Place = "Front", Side = "Right") ;
+    Post( Place = "Rear", Side = "Right") ;
   }
   
-  translate ([0, ShowBogies ? PostDepth / 2 : 0, ShowBogies ? PostHeightFront - PostFixingHoleHeight : 0])
+  translate( [0, ShowBogies ? PostDepth / 2 : 0, ShowBogies ? PostHeightFront - PostFixingHoleHeight : 0] )
   {
     // The structure holding the top in place
-    color("YellowGreen") translate ([CrossBracingDepth, 0, - LongBarWidth]) cube ([CartWidth - 2 * CrossBracingDepth, LongBarDepth, LongBarWidth], centre = false); // front bar - http://www.wickes.co.uk/Wickes-Treated-Kiln-Dried-C16-Regularised-45x95x3600mm-Single/p/190167 £11.99
-
-    color("YellowGreen") translate ([CrossBracingDepth, FrontToRearPostLength, - LongBarWidth]) cube ([CartWidth - 2 * CrossBracingDepth, LongBarDepth, LongBarWidth], centre = false); // rear bar - http://www.wickes.co.uk/Wickes-Treated-Kiln-Dried-C16-Regularised-45x95x3600mm-Single/p/190167 £11.99
-
-
-    color("SpringGreen") translate ([0, - FrontExtLength - LongBarDepth, - CrossBracingWidth ]) cube ([CrossBracingDepth, SideBracingLength, CrossBracingWidth], centre = false); // left bracing 
-    color("SpringGreen") translate ([( CartWidth - CrossBracingDepth ) / 2, LongBarDepth, - CrossBracingWidth ]) cube ([CrossBracingDepth, OsbTopLength - LongBarDepth - CrossBracingDepth * 2, CrossBracingWidth], centre = false); // centre bracing
-    color("SpringGreen") translate ([CartWidth - CrossBracingDepth, - FrontExtLength - LongBarDepth, - CrossBracingWidth ]) cube ([CrossBracingDepth, SideBracingLength, CrossBracingWidth], centre = false); // right bracing
-
     
-    color("SpringGreen") translate ([CrossBracingDepth, OsbTopLength - CrossBracingDepth - LongBarDepth, - CrossBracingWidth ]) cube ([CartWidth - 2 * CrossBracingDepth, CrossBracingDepth, CrossBracingWidth], centre = false); // rear bracing 
-    
-    
-    color("SpringGreen") translate ([CrossBracingDepth, - FrontExtLength - CrossBracingDepth, - CrossBracingWidth ]) cube ([CartWidth - 2 * CrossBracingDepth, CrossBracingDepth, CrossBracingWidth], centre = false); // front head rest
-
-    /*
-    // incorrect - currently hits the rear posts. Anyway, are they necessary?
-    InnerBracingOffset = sqrt (CrossBracingDepth * CrossBracingDepth + LongBarDepth * LongBarDepth) ;
-    a = CartWidth / 2 - (CrossBracingDepth * 1.5) ;
-    b = FrontToRearPostLength - LongBarDepth ;
-    InnerBracingLength = sqrt  ( a * a + b * b) ;
-    for (i = [ 0 : 1 ])
+    // front bar - http://www.wickes.co.uk/Wickes-Treated-Kiln-Dried-C16-Regularised-45x95x3600mm-Single/p/190167 £11.99
+    translate( [SideBarDepth, 0, - LongBarWidth] )
     {
-      j = i == 0 ? CartWidth / 2 - CrossBracingDepth / 2 :  CartWidth / 2 + CrossBracingDepth / 2;
-      InnerBracingAngle = i == 0 ? atan (b / a) - 90 : 90 - atan (b / a) ;
-      translate ( [j, 0, - CrossBracingWidth ])
+      color( LongBarColour ) cube( [CartWidth - 2 * SideBarDepth, LongBarDepth, LongBarWidth], center = false ); 
+      echo( str( "Front Bar, Timber: ", LongBarWidth, "x", LongBarDepth, "mm, Length=", CartWidth - 2 * SideBarDepth ) ); 
+    }
+    
+    // rear bar - http://www.wickes.co.uk/Wickes-Treated-Kiln-Dried-C16-Regularised-45x95x3600mm-Single/p/190167 £11.99
+    translate( [SideBarDepth, FrontToRearPostLength - LongBarDepth - PostDepth, - LongBarWidth] ) 
+    {
+      difference()
       {
-        color("Magenta") rotate ([0, 0, InnerBracingAngle ]) translate ([- CrossBracingDepth / 2, InnerBracingOffset, 0 ]) cube ([CrossBracingDepth, InnerBracingLength, CrossBracingWidth], centre = false); // cross bracing 
-        // rotate ([0, 0, InnerBracingAngle ]) translate ([- CrossBracingDepth / 2, InnerBracingOffset, 0 ]) cube ([CrossBracingDepth, InnerBracingLength, CrossBracingWidth], centre = false); // cross bracing 
+        // allows for interlocking of the center strut
+        color( LongBarColour ) cube( [CartWidth - 2 * SideBarDepth, LongBarDepth, LongBarWidth], center = false ); 
+        echo( str( "Rear Bar, Timber: ", LongBarWidth, "x", LongBarDepth, "mm, Length=", CartWidth - 2 * SideBarDepth ) ); 
+        translate( [CartWidth / 2 - SideBarDepth * 3 / 2, -1, LongBarWidth - SideBarDepth + 1] ) cube( [SideBarDepth, LongBarDepth + 2, SideBarDepth + 1], center = false );
       }
     }
-    */
+
+    // left strut
+    translate( [0, - FrontExtLength, - SideBarWidth] ) 
+    {
+      color( SideBarColour ) cube( [SideBarDepth, SideBarLength, SideBarWidth], center = false );  
+      echo( str( "Left Strut, Timber: ", SideBarWidth, "x", SideBarDepth, "mm, Length=", SideBarLength ) ); 
+    }
+    
+    // center strut
+    translate( [( CartWidth - SideBarDepth ) / 2, LongBarDepth, - SideBarWidth] )
+    {
+      difference()
+      {
+        // allows for interlocking of the rear bar
+        color( SideBarColour ) cube( [SideBarDepth, OsbTopLength - LongBarDepth - SideBarDepth * 2, SideBarWidth], center = false ); 
+        echo( str( "Centre Strut, Timber: ", SideBarWidth, "x", SideBarDepth, "mm, Length=", OsbTopLength - LongBarDepth - SideBarDepth * 2 ) ); 
+        translate( [0, FrontToRearPostLength - LongBarDepth - SideBarDepth * 2 - 1, 0] ) cube( [SideBarDepth + 2, LongBarDepth + 2, SideBarWidth - SideBarDepth], center = false );
+      }
+    }
+    
+    // right strut
+    translate( [CartWidth - SideBarDepth, - FrontExtLength, - SideBarWidth] )
+    {
+      color( SideBarColour ) cube( [SideBarDepth, SideBarLength, SideBarWidth], center = false ); 
+      echo( str( "Right Strut, Timber: ", SideBarWidth, "x", SideBarDepth, "mm, Length=", SideBarLength ) ); 
+    }
+
+    // rear strut
+    translate( [SideBarDepth, OsbTopLength - SideBarDepth - LongBarDepth, - SideBarWidth] )
+    {
+      color( SideBarColour ) cube( [CartWidth - 2 * SideBarDepth, SideBarDepth, SideBarWidth], center = false );  
+      echo( str( "Rear Strut, Timber: ", SideBarWidth, "x", SideBarDepth, "mm, Length=", CartWidth - 2 * SideBarDepth ) ); 
+    }
+    
+    // front head rest
+    translate( [0, - FrontExtLength - LongBarDepth, - LongBarWidth ] )
+    {
+      color( LongBarColour ) cube( [CartWidth, LongBarDepth, LongBarWidth], center = false ); 
+      echo( str( "Front Head Rest, Timber: ", LongBarWidth, "x", LongBarDepth, "mm, Length=", CartWidth ) ); 
+      
+      // front head rest foam covering
+      FoamHeadRest( "Right" );
+      FoamHeadRest( "Left" );
+    }
 
     
-
     // The top OSB boards
-    color("SaddleBrown")  translate ([0, - PostDepth, 0]) cube ([OsbTopWidth, OsbTopLength, OsbThickness ], centre = false) ;
-    color("Sienna")  translate ([CartWidth / 2, - PostDepth, 0]) cube ([OsbTopWidth, OsbTopLength, OsbThickness ], centre = false) ;
+    translate( [(WithOSBSides ? - OsbThickness : 0), - PostDepth, 0] )
+    {
+      color( OSBTopRightColour ) cube( [OsbTopWidth, OsbTopLength, OsbThickness], center = false );
+      echo( str( "Top Right OSB: ", OsbTopLength, "x", OsbTopWidth, "x", OsbThickness, "mm" ) ); 
+    }
 
+    translate( [CartWidth / 2, - PostDepth, 0] )
+    {
+      color( OSBTopLeftColour ) cube( [OsbTopWidth, OsbTopLength, OsbThickness], center = false );
+      echo( str( "Top Left OSB: ", OsbTopLength, "x", OsbTopWidth, "x", OsbThickness, "mm" ) ); 
+    }
 
+    
+    // The foam topping for two weeders
+    echo( str( "Foam Topping: ", FoamToppingSize[0], "x", FoamToppingSize[1], "x", FoamToppingSize[2], "mm" ) ); 
+    translate( [FoamToppingRightXOffset, - PostDepth - (FoamToppingLength - OsbTopLength) / 2, OsbThickness])
+    {
+      color( FoamToppingColour ) cube( [FoamToppingWidth, FoamToppingLength, FoamToppingDepth], center = false );
+    }
+
+    translate( [FoamToppingLeftXOffset, - PostDepth - (FoamToppingLength - OsbTopLength) / 2, OsbThickness])
+    {
+      color( FoamToppingColour ) cube( [FoamToppingWidth, FoamToppingLength, FoamToppingDepth], center = false );
+    }   
+
+    
+    if (WithOSBSides)
+    {
+      // The left side OSB board
+      translate( [- OsbThickness, - FrontExtLength - SideBarDepth, - OsbSideWidth] )
+      {
+        color( OSBSideColour ) cube( [OsbThickness, OsbSideLength, OsbSideWidth], center = false );
+        echo( str( "Left Side OSB: ", OsbSideLength, "x", OsbSideWidth, "x", OsbThickness, "mm" ) ); 
+      }
+      // The right side OSB board
+      translate( [CartWidth, - FrontExtLength - SideBarDepth, - OsbSideWidth] )
+      {
+        color( OSBSideColour ) cube( [OsbThickness, OsbSideLength, OsbSideWidth], center = false );
+        echo( str( "Right Side OSB: ", OsbSideLength, "x", OsbSideWidth, "x", OsbThickness, "mm" ) ); 
+      }
+    }
 
   }
-
 }
-
-
-  
+ 

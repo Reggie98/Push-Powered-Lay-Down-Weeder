@@ -9,7 +9,7 @@
 
 module Tyre( TyreDiameter, TyreWidth, CamberRadius, WheelDiameter, WheelRim, WheelInnerWidth, AxelDiameter, AxelMountDiameter, TyreColour, WheelColour )
 {
-  OverLap = 0.6; // suitable for round tyres - use a value like 0.8 for flatter tyres
+  OverLap = 0.6 ; // suitable for round tyres - use a value like 0.8 for flatter tyres
   rotate( [0, 90, 0] )
   {
     color( TyreColour ) 

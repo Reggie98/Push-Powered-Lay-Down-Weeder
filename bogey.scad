@@ -47,7 +47,7 @@ module NutBolt( MSize, Length, Side )
   BoltHeadLength = 8 ;
   RotateY = Side == "Left" ? -90 : 90 ;
   NutTranslateX = Side == "Left" ? - SteelAngleXApart / 2 - SteelAngleThickness - NutLength : SteelAngleXApart / 2 + SteelAngleThickness + NutLength ;
-  BoltTranslateX = Side == "Left" ? SteelAngleXApart / 2 + SteelAngleThickness + BoltHeadLength : - SteelAngleXApart / 2 - SteelAngleThickness - BoltHeadLength ;
+  BoltTranslateX = Side == "Left" ? SteelAngleXApart / 2 + SteelAngleThickness + BoltHeadLength : - SteelAngleXApart / 2 - SteelAngleThickness - BoltHeadLength;
   color( "Silver" ) 
   {
     translate( [NutTranslateX, 0, 0] ) 
@@ -63,7 +63,7 @@ module NutBolt( MSize, Length, Side )
       rotate( [0, RotateY, 0] )
       {
         bolt( MSize, Length );
-        echo( str( "Bolt: M", MSize, "x", Length ) ) ;
+        echo( str( "Bolt: M", MSize, "x", Length ) );
       }
     }
   }
